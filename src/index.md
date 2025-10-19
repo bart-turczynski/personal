@@ -3,8 +3,8 @@ layout: base.njk
 title: Bart Turczynski
 ---
 
-# Welcome to My Website
+# Bart Turczynski
 
 Oh, hello.
 
-LinkedIn(https://turczynski.pl)
+[LinkedIn](https://turczynski.pl)

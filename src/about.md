@@ -5,14 +5,14 @@ title: About
 
 # About Me
 
-This is the about page. Add some information about yourself here!
+Free tinker_er_.
 
 ## Background
 
-Tell your story...
+Black. Or white. Depends on your system.
 
 ## Skills
 
-- Web Development
-- Static Site Generation
-- And more...
+- Can wiggle ears
+- Great with pet(peeve)s)
+- Uhm.
