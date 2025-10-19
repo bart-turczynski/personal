@@ -7,4 +7,6 @@ title: Bart Turczynski
 
 Oh, hello.
 
-[LinkedIn](https://turczynski.pl)
+[LinkedIn](https://www.linkedin.com/in/bart-turczynski/)
+
+I hate trailing slashes.
