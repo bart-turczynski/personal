@@ -21,3 +21,8 @@ export async function onRequest(context) {
   // Otherwise continue to your static asset
   return context.next();
 }
+
+if (url.hostname === "www.turczynski.pl") {
+  url.hostname = "turczynski.pl";
+  changed = true;
+}
