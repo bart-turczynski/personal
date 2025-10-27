@@ -7,7 +7,9 @@
     "build": "eleventy",
     "serve": "eleventy --serve",
     "start": "eleventy --serve",
-    "debug": "DEBUG=Eleventy* eleventy"
+    "debug": "DEBUG=Eleventy* eleventy",
+    "copy-robots": "cp src/robots.txt _site/robots.txt",
+    "postbuild": "npm run copy-robots && git add _site/robots.txt && git commit -m \"Add robots.txt to build\" || true"
   },
   "keywords": [],
   "author": "",

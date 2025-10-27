@@ -7,3 +7,6 @@ npm-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# allow committing robots.txt that lives in the build output
+!_site/robots.txt
