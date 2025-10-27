@@ -8,8 +8,8 @@
     "serve": "eleventy --serve",
     "start": "eleventy --serve",
     "debug": "DEBUG=Eleventy* eleventy",
-    "copy-robots": "cp src/robots.txt _site/robots.txt",
-    "postbuild": "npm run copy-robots && git add _site/robots.txt && git commit -m \"Add robots.txt to build\" || true"
+    "copy-static": "cp src/robots.txt src/ads.txt src/humans.txt _site/ || true",
+    "postbuild": "npm run copy-static && git add _site/robots.txt _site/ads.txt _site/humans.txt && git commit -m \"Add static site metadata (robots/ads/humans) to build\" || true"
   },
   "keywords": [],
   "author": "",

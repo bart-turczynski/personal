@@ -10,3 +10,5 @@ npm-debug.log*
 
 # allow committing robots.txt that lives in the build output
 !_site/robots.txt
+!_site/ads.txt
+!_site/humans.txt
