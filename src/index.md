@@ -1,6 +1,6 @@
 ---
 layout: base.njk
-title: Bart Turczynski
+title: 
 ---
 
 # Bart Turczynski
