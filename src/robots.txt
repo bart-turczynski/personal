@@ -1,1 +1,2 @@
-User-agent: * # if you don’t already have one
+User-agent: *
+Allow: /
