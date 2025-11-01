@@ -4,7 +4,7 @@ const { execSync } = require("child_process");
 
 function getFsMtime(inputPath) {
   try {
-    // Local filesystem mtime (what you asked for)
+    // Local filesystem modified time (your computer)
     return fs.statSync(inputPath).mtime;
   } catch {
     return null;
@@ -13,6 +13,7 @@ function getFsMtime(inputPath) {
 
 function getGitLastCommitISO(inputPath) {
   try {
+    // Git commit ISO 8601 timestamp (works on GitHub/Cloudflare)
     const out = execSync(`git log -1 --format=%cI -- "${inputPath}"`, {
       stdio: ["ignore", "pipe", "ignore"],
     })
@@ -24,46 +25,48 @@ function getGitLastCommitISO(inputPath) {
   }
 }
 
-function toISODateOnly(d) {
-  return new Date(d).toISOString().split("T")[0]; // YYYY-MM-DD
+function toISOTimestamp(d) {
+  // Full ISO 8601 (e.g., 2025-11-01T12:34:56.789Z)
+  return new Date(d).toISOString();
 }
 
 module.exports = function (eleventyConfig) {
   // Show a message so we know the config actually loaded
   console.log("[11ty] PassthroughCopy enabled for src/.well-known");
 
-  // Copy src/.well-known → _site/.well-known and icons to root
+  // Copy src/.well-known → _site/.well-known
   eleventyConfig.addPassthroughCopy("src/.well-known");
+
+  // Copy icons to site root
   eleventyConfig.addPassthroughCopy({ "src/assets/icons/*": "/" });
 
-  // Allow excluding pages from sitemap with front matter:
-  // excludeFromSitemap: true  OR  eleventyExcludeFromCollections: true
+  // Filter: exclude from sitemap via front matter
   eleventyConfig.addFilter("isExcludedFromSitemap", (data = {}) => {
     return Boolean(data.excludeFromSitemap || data.eleventyExcludeFromCollections);
   });
 
-  // Absolute URL builder that respects your site.url
+  // Filter: absolute URL (prepend site.url)
   eleventyConfig.addFilter("absoluteUrl", (path, siteUrl) => {
     if (!siteUrl) return path;
     const u = new URL(path, siteUrl);
     return u.href;
   });
 
-  // <lastmod> resolver:
-  // Local build → file mtime (your computer)
-  // CI (GitHub/Cloudflare) → git last commit date
-  // Fallbacks: page.date → today
+  // Filter: last modified timestamp in ISO format
   eleventyConfig.addFilter("lastmodISO", (page) => {
-    if (!page || !page.inputPath) return toISODateOnly(new Date());
+    if (!page || !page.inputPath) return toISOTimestamp(new Date());
 
+    // 1) Local mtime (your computer)
     const fsMtime = getFsMtime(page.inputPath);
-    if (fsMtime) return toISODateOnly(fsMtime);
+    if (fsMtime) return toISOTimestamp(fsMtime);
 
+    // 2) Git commit timestamp
     const gitISO = getGitLastCommitISO(page.inputPath);
-    if (gitISO) return gitISO.split("T")[0];
+    if (gitISO) return gitISO; // already full ISO
 
-    if (page.date) return toISODateOnly(page.date);
-    return toISODateOnly(new Date());
+    // 3) Page date or now
+    if (page.date) return toISOTimestamp(page.date);
+    return toISOTimestamp(new Date());
   });
 
   return {
