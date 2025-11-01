@@ -1,0 +1,2 @@
+# Stop Eleventy’s default copy; we’ll handle it via passthrough
+src/assets/icons/**
