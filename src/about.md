@@ -1,18 +1,7 @@
 ---
 layout: base.njk
-title: About
+title: About - Bart Turczynski
 ---
 
 # About Me
-
-Free tinker_er_.
-
-## Background
-
-Black. Or white. Depends on your system.
-
-## Skills
-
-- Can wiggle ears
-- Great with pet(peeve)s)
-- Uhm.
+Bart Turczynski is a growth marketer who specializes in SEO, GEO, CRO, and digital PR, among other. Currently working as a growth advisor and full-time Head of Growth at a B2B SaaS company.
