@@ -1,4 +1,0 @@
-; --- MTA-STS & TLS-RPT setup for Google Workspace ---
-_mta-sts   3600 IN TXT "v=STSv1; id=20251101T0000Z"
-_smtp._tls 3600 IN TXT "v=TLSRPTv1; rua=mailto:dmarc-reports@turczynski.pl"
-mta-sts    3600 IN CNAME turczynski.github.io.
