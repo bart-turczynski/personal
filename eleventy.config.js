@@ -5,6 +5,7 @@ module.exports = function (eleventyConfig) {
 
   // Copy src/.well-known → _site/.well-known
   eleventyConfig.addPassthroughCopy("src/.well-known");
+  eleventyConfig.addPassthroughCopy({ "src/assets/icons": "/" });
 
   return {
     dir: {
