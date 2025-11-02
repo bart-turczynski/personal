@@ -1,21 +1,26 @@
 {
   "name": "personal",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-"scripts": {
-  "build": "eleventy",
-  "serve": "eleventy --serve",
-  "start": "eleventy --serve",
-  "debug": "DEBUG=Eleventy* eleventy",
-  "copy-static": "mkdir -p _site && [ -f src/robots.txt ] && cp src/robots.txt _site/ || true && [ -f src/ads.txt ] && cp src/ads.txt _site/ || true && [ -f src/humans.txt ] && cp src/humans.txt _site/ || true && [ -d src/.well-known ] && mkdir -p _site/.well-known && cp -R src/.well-known/. _site/.well-known/ || true",
-  "postbuild": "npm run copy-static"
-},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "description": "Personal website for Bart Turczynski built with Eleventy.",
+  "private": true,
   "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "build": "eleventy",
+    "serve": "eleventy --serve",
+    "start": "eleventy --serve",
+    "debug": "DEBUG=Eleventy* eleventy",
+    "copy-static": "mkdir -p _site && [ -f src/robots.txt ] && cp src/robots.txt _site/ || true && [ -f src/ads.txt ] && cp src/ads.txt _site/ || true && [ -f src/humans.txt ] && cp src/humans.txt _site/ || true && [ -d src/.well-known ] && mkdir -p _site/.well-known && cp -R src/.well-known/. _site/.well-known/ || true",
+    "postbuild": "npm run copy-static"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [],
+  "author": "Bart Turczynski",
+  "license": "ISC",
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2"
   }
 }
+

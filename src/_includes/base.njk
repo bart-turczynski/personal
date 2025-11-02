@@ -1,17 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site.language or 'en' }}">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if title %}{{ title }} - {% endif %}{{ site.title }}</title>
-    <meta name="description" content="{% if description %}{{ description }}{% else %}{{ site.description }}{% endif %}">
+    {% set pageTitle = title or site.title %}
+    <title>{{ pageTitle }}</title>
+    {% set metaDescription = description or site.description %}
+    <meta name="description" content="{{ metaDescription }}">
+    {% if page.url %}
+        {% set canonicalUrl = page.url | absoluteUrl(site.url) %}
+        <link rel="canonical" href="{{ canonicalUrl }}">
+    {% endif %}
+    {% if noindex %}
+        <meta name="robots" content="noindex, nofollow">
+    {% else %}
+        <meta name="robots" content="index, follow">
+    {% endif %}
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#ffffff">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ site.siteName or site.title }}">
+    <meta property="og:title" content="{{ pageTitle }}">
+    <meta property="og:description" content="{{ metaDescription }}">
+    {% if canonicalUrl %}
+        <meta property="og:url" content="{{ canonicalUrl }}">
+    {% endif %}
+    {% if site.author?.image %}
+        <meta property="og:image" content="{{ site.author.image }}">
+    {% endif %}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ pageTitle }}">
+    <meta name="twitter:description" content="{{ metaDescription }}">
+    {% if site.author?.image %}
+        <meta name="twitter:image" content="{{ site.author.image }}">
+    {% endif %}
+    {% if site.social?.linkedin %}
+        <link rel="me" href="{{ site.social.linkedin }}">
+    {% endif %}
     <style>
+        :root {
+            color-scheme: light dark;
+        }
         body {
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 2rem;
             line-height: 1.6;
+            background: Canvas;
+            color: CanvasText;
         }
         nav ul {
             list-style: none;
@@ -23,8 +61,13 @@
             text-decoration: none;
             color: #0066cc;
         }
+        nav a:focus,
         nav a:hover {
             text-decoration: underline;
+        }
+        footer {
+            margin-top: 4rem;
+            font-size: 0.875rem;
         }
     </style>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -36,25 +79,30 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
     <link rel="manifest" href="/site.webmanifest">
-    <meta name="apple-mobile-web-app-title" content="Bart Turczynski">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-title" content="{{ site.title }}">
+    {% set schemaGraph = structuredData | combineSchemas(schema) %}
+    {% if schemaGraph and schemaGraph | length %}
+        <script type="application/ld+json">
+{{ schemaGraph | jsonify | safe }}
+        </script>
+    {% endif %}
 </head>
 <body>
     <header>
-        <nav>
+        <nav aria-label="Primary">
             <ul>
                 <li><a href="/">Home</a></li>
                 <li><a href="/about/">About</a></li>
             </ul>
         </nav>
     </header>
-    
-    <main>
+
+    <main id="main-content">
         {{ content | safe }}
     </main>
-    
+
     <footer>
-        <p>&copy; {{ site.title }} 2025. Or 2026. If it's 2026, I forgot to update the footer. I hard-coded it. It was a mistake.</p>
+        <p>&copy; {{ site.title }} {{ site.currentYear }}. Built with Eleventy and deployed on Cloudflare Pages.</p>
     </footer>
 </body>
 </html>
