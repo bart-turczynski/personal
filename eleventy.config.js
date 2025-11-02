@@ -1,6 +1,6 @@
 // eleventy.config.js
 const fs = require("fs");
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 
 function getFsMtime(inputPath) {
   try {
@@ -14,9 +14,13 @@ function getFsMtime(inputPath) {
 function getGitLastCommitISO(inputPath) {
   try {
     // Git commit ISO 8601 timestamp (works on GitHub/Cloudflare)
-    const out = execSync(`git log -1 --format=%cI -- "${inputPath}"`, {
-      stdio: ["ignore", "pipe", "ignore"],
-    })
+    const out = execFileSync(
+      "git",
+      ["log", "-1", "--format=%cI", "--", inputPath],
+      {
+        stdio: ["ignore", "pipe", "ignore"],
+      }
+    )
       .toString()
       .trim();
     return out || null;
@@ -39,6 +43,27 @@ module.exports = function (eleventyConfig) {
 
   // Copy icons to site root
   eleventyConfig.addPassthroughCopy({ "src/assets/icons/*": "/" });
+
+  eleventyConfig.addFilter("jsonify", (value) => {
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch (error) {
+      console.warn("[11ty] Failed to stringify value for jsonify filter", error);
+      return "{}";
+    }
+  });
+
+  eleventyConfig.addFilter("combineSchemas", (globalSchemas, pageSchemas) => {
+    const toArray = (input) => {
+      if (!input) return [];
+      return Array.isArray(input) ? input : [input];
+    };
+
+    const combined = [...toArray(globalSchemas), ...toArray(pageSchemas)];
+
+    return combined.filter(Boolean);
+  });
+
 
   // Filter: exclude from sitemap via front matter
   eleventyConfig.addFilter("isExcludedFromSitemap", (data = {}) => {
