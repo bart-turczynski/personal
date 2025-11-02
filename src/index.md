@@ -5,7 +5,7 @@ description: Growth advisor and marketer specialising in SEO, CRO, GEO and digit
 schema:
   '@context': https://schema.org
   '@type': ProfilePage
-  about:
+  mainEntity:
     '@type': Person
     name: Bart Turczynski
     jobTitle: Growth Advisor & Head of Growth

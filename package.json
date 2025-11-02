@@ -1,7 +1,7 @@
 {
   "name": "personal",
   "version": "1.0.0",
-  "description": "Personal website for Bart Turczynski built with Eleventy.",
+  "description": "Personal website of Bart Turczynski.",
   "private": true,
   "type": "commonjs",
   "main": "index.js",

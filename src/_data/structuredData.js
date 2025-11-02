@@ -18,7 +18,7 @@ module.exports = (data = {}) => {
   const webSite = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: site.title,
+    name: site.siteName || site.title,
     url: siteUrl || undefined,
     description: site.description,
     inLanguage: site.language || "en",
@@ -35,4 +35,3 @@ module.exports = (data = {}) => {
 
   return [person, webSite, webPage];
 };
-
