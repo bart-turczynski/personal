@@ -1,5 +1,6 @@
 node_modules/
 _site/
+.wrangler/
 .DS_Store
 npm-debug.log*
 .env
