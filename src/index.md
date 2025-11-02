@@ -19,6 +19,5 @@ schema:
 Hello, I’m Bart—an SEO, GEO, CRO, and digital PR-focused growth advisor currently leading growth at a B2B SaaS company.
 
 - [Connect on LinkedIn]({{ site.social.linkedin }})
-- [Download my résumé](https://turczynski.pl/Bart-Turczynski-CV.pdf)
 
 I hate trailing slashes.
