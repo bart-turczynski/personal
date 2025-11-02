@@ -2,3 +2,5 @@ User-agent: *
 Allow: /
 
 Sitemap: https://turczynski.pl/sitemap.xml
+Sitemap: https://newsletter.turczynski.pl/sitemap.xml
+Sitemap: https://newsletter.turczynski.pl/news_sitemap.xml
