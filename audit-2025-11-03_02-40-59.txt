@@ -1,0 +1,74 @@
+
+[0;36m=== 🔹 DNS OVERVIEW ===[0m
+turczynski.pl.		300	IN	MX	5 ALT2.ASPMX.L.GOOGLE.COM.
+turczynski.pl.		300	IN	MX	1 ASPMX.L.GOOGLE.COM.
+turczynski.pl.		300	IN	MX	10 ASPMX2.GOOGLEMAIL.COM.
+turczynski.pl.		300	IN	MX	10 ASPMX3.GOOGLEMAIL.COM.
+turczynski.pl.		300	IN	MX	5 ALT1.ASPMX.L.GOOGLE.COM.
+
+[0;36m=== 🔹 TXT RECORDS (SPF, DKIM, DMARC, MTA-STS, TLS-RPT) ===[0m
+turczynski.pl.		300	IN	TXT	"google-site-verification=2qPBNMons-e2eqqAyXbZfptWIHNMJqKvKijT0QGhRyk"
+turczynski.pl.		300	IN	TXT	"v=spf1 include:_spf.google.com -all"
+turczynski.pl.		300	IN	TXT	"yandex-verification: a19de9448272f0e0"
+_dmarc.turczynski.pl.	300	IN	TXT	"v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; rua=mailto:9b95bb4d379a4b3996469c29974c85ef@dmarc-reports.cloudflare.net,mailto:dmarc@turczynski.pl"
+google._domainkey.turczynski.pl. 300 IN	TXT	"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApXQ2CMKPBx4l3r0P2KDs7uPBpsz/s/9145qg3sqldy1DVArHXeq76DJK66iqE+q2PbejXLQzNt7/KEyF/8k3NEGd5OR0/Q2fU3B+TW4lvcp1x4/fgkzDOi17idLmnXaHhxuqeZGHpcOiwVDxB2p+GeOVC5maytGPNMHfByZVnHVpf1gL7YAB0sCfOmnWHcpT6" "MxCEWo07L8kdgnC4IU5hnzlTSzd14wVoem1sziR/TAfto3DjkW4bLqxNo80VuwDb34AgA5u32Nu+pTD2+PmDtsMHjLt5muCgphYSzJLuTwrpbKmSsU6Rua2ZPZ8/xQvSZNWyIP10i7s2Qytx77LRwIDAQAB"
+_mta-sts.turczynski.pl.	300	IN	TXT	"v=STSv1; id=20251101T0000Z"
+_smtp._tls.turczynski.pl. 300	IN	TXT	"v=TLSRPTv1; rua=mailto:dmarc-reports@turczynski.pl"
+
+[0;36m=== 🔹 CAA RECORDS ===[0m
+turczynski.pl.		300	IN	CAA	0 iodef "mailto:dmarc@turczynski.pl"
+turczynski.pl.		300	IN	CAA	0 issue "comodoca.com"
+turczynski.pl.		300	IN	CAA	0 issue "digicert.com; cansignhttpexchanges=yes"
+turczynski.pl.		300	IN	CAA	0 issue "letsencrypt.org"
+turczynski.pl.		300	IN	CAA	0 issue "pki.goog; cansignhttpexchanges=yes"
+turczynski.pl.		300	IN	CAA	0 issue "ssl.com"
+turczynski.pl.		300	IN	CAA	0 issuewild "comodoca.com"
+turczynski.pl.		300	IN	CAA	0 issuewild "digicert.com; cansignhttpexchanges=yes"
+turczynski.pl.		300	IN	CAA	0 issuewild "letsencrypt.org"
+turczynski.pl.		300	IN	CAA	0 issuewild "pki.goog; cansignhttpexchanges=yes"
+turczynski.pl.		300	IN	CAA	0 issuewild "ssl.com"
+[0;31m⚠️  Legacy issuers still present[0m
+
+[0;36m=== 🔹 DNSSEC STATUS ===[0m
+[1;33m⚠️  DNSSEC disabled (expected)[0m
+
+[0;36m=== 🔹 MTA-STS POLICY FILE CONTENT ===[0m
+[0;32m✅  Found https://mta-sts.turczynski.pl/.well-known/mta-sts.txt[0m
+version: STSv1
+mode: testing
+mx: aspmx.l.google.com
+mx: alt1.aspmx.l.google.com
+mx: alt2.aspmx.l.google.com
+mx: alt3.aspmx.l.google.com
+mx: alt4.aspmx.l.google.com
+max_age: 604800
+[1;33m⚠️  Check MTA-STS mode or syntax[0m
+
+[0;36m=== 🔹 SSL CERTIFICATE ===[0m
+issuer=C=US, O=Google Trust Services, CN=WE1
+subject=CN=turczynski.pl
+notBefore=Oct 19 19:54:11 2025 GMT
+notAfter=Jan 17 20:54:07 2026 GMT
+X509v3 Subject Alternative Name: 
+    DNS:turczynski.pl
+
+[0;36m=== 🔹 HEADERS (Security + CSP + CORS) ===[0m
+permissions-policy: accelerometer=(), autoplay=(), camera=(), clipboard-read=(), clipboard-write=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), fullscreen=()
+x-xss-protection: 1; mode=block
+referrer-policy: strict-origin-when-cross-origin
+cross-origin-resource-policy: same-origin
+cross-origin-opener-policy: same-origin
+content-security-policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+expect-ct: max-age=86400, enforce
+x-frame-options: deny
+[0;32m✅  No Access-Control-Allow-Origin[0m
+
+[0;36m=== 🔹 ASSET HEADERS (favicon) ===[0m
+content-type: image/vnd.microsoft.icon
+cache-control: public, max-age=14400, must-revalidate
+x-content-type-options: nosniff
+cross-origin-resource-policy: same-origin
+cross-origin-opener-policy: same-origin
+
+[0;36m=== 🔹 SUMMARY ===[0m
