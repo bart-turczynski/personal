@@ -43,6 +43,8 @@ module.exports = function (eleventyConfig) {
 
   // Copy icons to site root
   eleventyConfig.addPassthroughCopy({ "src/assets/icons/*": "/" });
+  // Copy CSS assets preserving folder structure
+  eleventyConfig.addPassthroughCopy("src/assets/css");
 
   eleventyConfig.addFilter("jsonify", (value) => {
     try {
