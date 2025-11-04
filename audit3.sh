@@ -75,6 +75,10 @@ else
   echo "✅ Cipher suite configuration is modern and secure."
 fi
 
+echo "=== TLS NEGOTIATION CHECK ==="
+curl -v https://turczynski.pl/ -o /dev/null 2>&1 | grep "SSL connection using"
+nmap --script ssl-enum-ciphers -p 443 turczynski.pl | grep -E "TLS_RSA|CBC" && echo "⚠️ Legacy ciphers detected"
+
 echo
 echo "Full nmap results saved to: $OUTPUT"
 echo "===== END OF AUDIT ====="
