@@ -13,3 +13,9 @@ npm-debug.log*
 !_site/robots.txt
 !_site/ads.txt
 !_site/humans.txt
+
+# ignore local config or reports
+*.txt
+*.log
+*.secret
+.env
