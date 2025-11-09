@@ -1,35 +1,23 @@
 const truncate = (value = "", limit = 4096) => {
-  if (typeof value !== "string") {
-    return String(value);
-  }
+  if (typeof value !== "string") return String(value);
   return value.length > limit ? `${value.slice(0, limit)}…` : value;
 };
 
 const normaliseFieldEntries = (formData) => {
   const fields = {};
-
   for (const [key, rawValue] of formData.entries()) {
     let value = rawValue;
     if (typeof rawValue === "object" && rawValue !== null && "name" in rawValue) {
-      const fileMeta = {
-        name: rawValue.name,
-        type: rawValue.type,
-        size: rawValue.size,
-      };
+      const fileMeta = { name: rawValue.name, type: rawValue.type, size: rawValue.size };
       value = `[file:${JSON.stringify(fileMeta)}]`;
     }
-
     if (fields[key]) {
-      if (Array.isArray(fields[key])) {
-        fields[key].push(truncate(value));
-      } else {
-        fields[key] = [fields[key], truncate(value)];
-      }
+      if (Array.isArray(fields[key])) fields[key].push(truncate(value));
+      else fields[key] = [fields[key], truncate(value)];
     } else {
       fields[key] = truncate(value);
     }
   }
-
   return fields;
 };
 
@@ -44,24 +32,17 @@ const calculateScore = ({ honeyTripped, cfThreatScore, notes = "" }) => {
 
 export const onRequest = async ({ request }) => {
   if (request.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed", allowed: ["POST"] }),
-      {
-        status: 405,
-        headers: {
-          "content-type": "application/json",
-          Allow: "POST",
-          "cache-control": "no-store",
-        },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed", allowed: ["POST"] }), {
+      status: 405,
+      headers: { "content-type": "application/json", Allow: "POST", "cache-control": "no-store" },
+    });
   }
 
   let formData;
   try {
     formData = await request.formData();
   } catch (error) {
-    console.error("honeypot: invalid form payload", error);
+    console.error("inbound: invalid form payload", error);
     return new Response(JSON.stringify({ status: "error", message: "Invalid form payload" }), {
       status: 400,
       headers: { "content-type": "application/json", "cache-control": "no-store" },
@@ -74,7 +55,7 @@ export const onRequest = async ({ request }) => {
   const cf = request.cf || {};
 
   const metadata = {
-    event: "web-honeypot",
+    event: "web-intake",
     timestamp: new Date().toISOString(),
     path: new URL(request.url).pathname,
     formId: formData.get("form_id") || null,
@@ -93,35 +74,14 @@ export const onRequest = async ({ request }) => {
   const noteSource = fields.notes || fields.summary || "";
   const normalisedNotes = Array.isArray(noteSource) ? noteSource.join(" ") : noteSource;
 
-  const score = calculateScore({
-    honeyTripped,
-    cfThreatScore: cf.threatScore,
-    notes: normalisedNotes,
-  });
-
+  const score = calculateScore({ honeyTripped, cfThreatScore: cf.threatScore, notes: normalisedNotes });
   const classification = honeyTripped ? "honeypot" : score >= 60 ? "suspicious" : "observed";
 
-  console.log(
-    JSON.stringify({
-      ...metadata,
-      score,
-      classification,
-    })
-  );
+  console.log(JSON.stringify({ ...metadata, score, classification }));
 
   return new Response(
-    JSON.stringify({
-      status: "received",
-      classification,
-      score,
-      reference: metadata.cfRay,
-    }),
-    {
-      status: 202,
-      headers: {
-        "content-type": "application/json",
-        "cache-control": "no-store",
-      },
-    }
+    JSON.stringify({ status: "received", classification, score, reference: metadata.cfRay }),
+    { status: 202, headers: { "content-type": "application/json", "cache-control": "no-store" } }
   );
 };
+

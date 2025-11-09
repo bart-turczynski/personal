@@ -1,25 +1,23 @@
 ---
 layout: base.njk
-title: Operations Intake
-description: Internal intake surface for automated abuse telemetry.
+title: Contact & Intake
+description: General contact and intake form.
 noindex: true
 excludeFromSitemap: true
 schema:
   '@context': https://schema.org
   '@type': WebPage
-  name: Operations Intake
-  description: Decoy intake surface used to profile automated submissions.
+  name: Contact & Intake
+  description: Contact and operational intake.
 ---
 
-# Operations Intake
+# Contact & Intake
 
-This form is monitored and instrumented. Legitimate visitors should use the contact details on the [security policy](/security-policy/).
-
-Any submission here may be logged together with metadata (IP, headers, payload). Automated traffic is automatically classified and reported.
+Use this form for contact and operational intake. For sensitive security reports, please see the [security policy](/security-policy/).
 
 ## Vendor Access Request
 
-<form class="decoy-form" method="POST" action="/api/trap" data-honeypot-form="vendor-intake">
+<form class="decoy-form" method="POST" action="/api/inbound" data-honeypot-form="vendor-intake">
   <input type="hidden" name="form_id" value="vendor-intake">
 
   <label for="vendor-name">Full name</label>
@@ -39,12 +37,12 @@ Any submission here may be logged together with metadata (IP, headers, payload).
     <input id="vendor-honey" type="text" name="honey_token" tabindex="-1" autocomplete="off">
   </div>
 
-  <button type="submit">Submit for review</button>
+  <button type="submit">Submit</button>
 </form>
 
 ## Emergency Escalation Channel
 
-<form class="decoy-form" method="POST" action="/api/trap" data-honeypot-form="escalation">
+<form class="decoy-form" method="POST" action="/api/inbound" data-honeypot-form="escalation">
   <input type="hidden" name="form_id" value="emergency-escalation">
 
   <label for="esc-ticket">Existing ticket ID</label>
@@ -68,5 +66,6 @@ Any submission here may be logged together with metadata (IP, headers, payload).
     <input id="esc-honey" type="text" name="honey_token" tabindex="-1" autocomplete="off">
   </div>
 
-  <button type="submit">Page on-call</button>
+  <button type="submit">Submit</button>
 </form>
+

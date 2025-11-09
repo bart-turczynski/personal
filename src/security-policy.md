@@ -19,9 +19,9 @@ Thank you for helping keep `turczynski.pl` resilient. This page outlines how to 
 - Provide enough detail for reproduction. Automated scanner dumps without a clear finding may be deprioritised.
 - Please allow 5 business days for acknowledgement and refrain from public disclosure until the issue is fixed or 30 days have elapsed.
 
-## 2. Honeypot Scope
+## 2. Intake Telemetry
 
-- The `/honeypot/` endpoints are decoy forms intentionally left for automated bots.
+- The `/form/` endpoint includes automated abuse telemetry.
 - Submissions may be logged together with IP, user agent, headers, and the content submitted (malicious payloads included).
 - Data is only used for abuse research and to improve filtering heuristics. It is **never** used to profile legitimate visitors.
 
