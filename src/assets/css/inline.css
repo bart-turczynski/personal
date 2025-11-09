@@ -33,3 +33,57 @@ footer {
     margin-top: 4rem;
     font-size: 0.875rem;
 }
+
+.decoy-form {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid color-mix(in srgb, CanvasText 20%, Canvas 80%);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    background: rgba(0, 0, 0, 0.02);
+    background: color-mix(in srgb, Canvas 95%, CanvasText 5%);
+    position: relative;
+}
+
+.decoy-form label {
+    display: block;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.decoy-form input,
+.decoy-form textarea,
+.decoy-form select {
+    width: 100%;
+    padding: 0.6rem;
+    margin-top: 0.35rem;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid color-mix(in srgb, CanvasText 30%, Canvas 70%);
+    border-radius: 0.35rem;
+    background: Canvas;
+    color: CanvasText;
+}
+
+.decoy-form button {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 0.35rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #0066cc;
+    color: #fff;
+}
+
+.decoy-form button:hover,
+.decoy-form button:focus {
+    opacity: 0.9;
+}
+
+.honey-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
