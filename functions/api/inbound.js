@@ -107,48 +107,123 @@ export const onRequest = async (ctx) => {
     }
   }
 
-  // Best-effort Slack alert for high-score events
-  const threshold = Number(env?.ALERT_THRESHOLD || 60);
-  const webhook = env?.SLACK_WEBHOOK_URL;
-  if (webhook && (classification === "honeypot" || score >= threshold)) {
-    const text = [
-      `Intake alert: ${classification.toUpperCase()} (score ${score})`,
-      `IP ${metadata.ip || "?"} • ${metadata.country || "??"} • ASN ${metadata.asn || "?"}`,
-      `Form ${metadata.formId || "?"} • Path ${metadata.path}`,
-      metadata.cfRay ? `Ray ${metadata.cfRay}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
+  // Email alert (configurable). Supports RESEND or SENDGRID via env variables.
+  const shouldAlert = classification === "honeypot" || score >= Number(env?.ALERT_THRESHOLD || 60);
+  const alertsTo = env?.ALERTS_TO || ""; // e.g., alerts@turczynski.pl
+  const alertsFrom = env?.ALERTS_FROM || alertsTo;
+  const provider = (env?.MAIL_PROVIDER || "").toUpperCase(); // RESEND, SENDGRID, MAILCHANNELS
+  const apiKey = env?.MAIL_API_KEY; // not required for MAILCHANNELS
 
-    const payload = {
-      text,
-      blocks: [
-        {
-          type: "section",
-          text: { type: "mrkdwn", text },
-        },
-        {
-          type: "context",
-          elements: [
-            { type: "mrkdwn", text: `UA: ${(metadata.userAgent || "-").slice(0, 160)}` },
-          ],
-        },
-      ],
-    };
+  const sendEmail = async ({ subject, text }) => {
+    if (!alertsTo || !alertsFrom || !provider || !apiKey) return;
+    try {
+      if (provider === "RESEND") {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ from: alertsFrom, to: [alertsTo], subject, text }),
+        });
+        if (!res.ok) throw new Error(`resend http ${res.status}`);
+      } else if (provider === "SENDGRID") {
+        const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            personalizations: [{ to: [{ email: alertsTo }] }],
+            from: { email: alertsFrom },
+            subject,
+            content: [{ type: "text/plain", value: text }],
+          }),
+        });
+        if (!res.ok) throw new Error(`sendgrid http ${res.status}`);
+      } else if (provider === "MAILCHANNELS") {
+        // MailChannels has no API key; use domain reputation + optional header
+        const res = await fetch("https://api.mailchannels.net/tx/v1/send", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            // Helps MailChannels attribute sending to your domain
+            "X-Auth-User": alertsFrom,
+          },
+          body: JSON.stringify({
+            personalizations: [{ to: [{ email: alertsTo }] }],
+            from: { email: alertsFrom },
+            subject,
+            content: [{ type: "text/plain", value: text }],
+          }),
+        });
+        if (!res.ok) throw new Error(`mailchannels http ${res.status}`);
+      }
+    } catch (e) {
+      console.error("inbound: email alert failed", e);
+    }
+  };
 
-    const send = fetch(webhook, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    }).catch((e) => console.error("inbound: slack send failed", e));
+  if (shouldAlert) {
+    let allowSend = true;
+    const cap = Number(env?.ALERT_HOURLY_CAP || 20);
+    const dedupMins = Number(env?.ALERT_DEDUP_WINDOW_MIN || 60);
 
-    if (typeof waitUntil === "function") waitUntil(send);
+    if (env && env.DB && typeof env.DB.prepare === "function") {
+      try {
+        // Hourly cap based on high-score events in the last hour
+        const capStmt = env.DB.prepare(
+          `SELECT COUNT(*) AS c
+             FROM events
+            WHERE ts >= datetime('now','-1 hour')
+              AND (honey = 1 OR score >= ?)`
+        );
+        const { c } = await capStmt.bind(Number(env?.ALERT_THRESHOLD || 60)).first();
+        if (typeof c === "number" && c >= cap) allowSend = false;
+
+        // Deduplicate by IP within window
+        if (allowSend && metadata.ip) {
+          const dedupStmt = env.DB.prepare(
+            `SELECT 1 AS x
+               FROM events
+              WHERE ts >= datetime('now', ?)
+                AND ip = ?
+                AND (honey = 1 OR score >= ?)
+              LIMIT 1`
+          );
+          const row = await dedupStmt.bind(`-${dedupMins} minutes`, metadata.ip, Number(env?.ALERT_THRESHOLD || 60)).first();
+          if (row && row.x === 1) allowSend = false;
+        }
+      } catch (e) {
+        console.error("inbound: cap/dedup check failed", e);
+      }
+    }
+
+    if (allowSend) {
+      const subject = `[intake] ${classification.toUpperCase()} score ${score} — ${metadata.ip || "?"}`;
+      const lines = [
+        `event=web-intake`,
+        `ts=${metadata.timestamp}`,
+        `score=${score} class=${classification}`,
+        `ip=${metadata.ip || "?"} country=${metadata.country || "??"} asn=${metadata.asn || "?"}`,
+        `path=${metadata.path} form=${metadata.formId || "?"}`,
+        metadata.cfRay ? `ray=${metadata.cfRay}` : null,
+        `ua=${(metadata.userAgent || "-").slice(0, 300)}`,
+      ].filter(Boolean);
+      const text = lines.join("\n");
+      const promise = sendEmail({ subject, text });
+      if (typeof waitUntil === "function") waitUntil(promise);
+    } else {
+      console.log("inbound: alert suppressed (cap/dedup)");
+    }
   }
 
   console.log(JSON.stringify({ ...metadata, score, classification }));
 
-  return new Response(
-    JSON.stringify({ status: "received", classification, score, reference: metadata.cfRay }),
-    { status: 202, headers: { "content-type": "application/json", "cache-control": "no-store" } }
-  );
+  // Minimal response: acknowledge only, no details
+  return new Response(JSON.stringify({ status: "received" }), {
+    status: 202,
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  });
 };

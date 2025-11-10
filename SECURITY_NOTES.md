@@ -190,3 +190,33 @@ Ensure that DNS records and `.well-known/mta-sts.txt` respond correctly.
 
 ---
 
+## Alerts Configuration (Email)
+
+- Pages Function `functions/api/inbound.js` can send email alerts for high‑score or honeypot events.
+- Supported providers: `RESEND`, `SENDGRID`, or `MAILCHANNELS` (set via env).
+- Configure in Cloudflare Pages → Project → Settings → Variables & Secrets, then redeploy:
+  - `MAIL_PROVIDER` = `RESEND` or `SENDGRID` or `MAILCHANNELS`
+  - `MAIL_API_KEY` = provider API key (not required for `MAILCHANNELS`)
+  - `ALERTS_TO` = `alerts@turczynski.pl`
+  - `ALERTS_FROM` = `alerts@turczynski.pl` (or another verified sender)
+  - Optional: `ALERT_THRESHOLD` = `60`
+
+Validation:
+```bash
+curl -s -i -X POST https://contact.turczynski.pl/api/inbound \
+  -F form_id=test -F honey_token=filled
+```
+Expect HTTP 202 and an email delivered to `alerts@turczynski.pl`.
+
+MailChannels DNS note:
+- Add to your SPF if sending via MailChannels to improve deliverability:
+  `v=spf1 include:relay.mailchannels.net include:_spf.google.com -all`
+  Keep DMARC/DKIM aligned with your primary provider (Google Workspace). For best results, consider a dedicated subdomain for alerts (e.g., `alerts@notify.turczynski.pl`) with its own SPF.
+### Alert caps & digest
+
+- Per‑hour cap: set `ALERT_HOURLY_CAP` (default 20). Alerts beyond this are suppressed.
+- Dedup window: set `ALERT_DEDUP_WINDOW_MIN` (default 60) to suppress repeats from the same IP.
+- Digest endpoint (manual or scheduled):
+  - URL: `/api/inbound/stats?hours=24&send=1`
+  - Auth: header `X-Digest-Secret: <value>` or `?secret=<value>` (set `DIGEST_SECRET` in variables)
+  - Sends a text digest to `ALERTS_TO` summarising totals, top IPs, and recent hits.
