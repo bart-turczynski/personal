@@ -69,6 +69,18 @@ export const onRequest = async ({ request, env, waitUntil }) => {
     });
   }
 
+  const url = new URL(request.url);
+  const inboundSecret = env?.INBOUND_SECRET;
+  if (inboundSecret) {
+    const provided = request.headers.get("x-inbound-secret") || url.searchParams.get("secret");
+    if (provided !== inboundSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+  }
+
   const ct = request.headers.get("content-type") || "";
   if (!ct.toLowerCase().includes("multipart/form-data")) {
     return new Response(JSON.stringify({ error: "Expected multipart/form-data" }), {
@@ -161,4 +173,3 @@ export const onRequest = async ({ request, env, waitUntil }) => {
 
   return new Response(JSON.stringify({ status: "received" }), { status: 202, headers: { "content-type": "application/json" } });
 };
-
