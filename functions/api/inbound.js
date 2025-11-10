@@ -30,7 +30,8 @@ const calculateScore = ({ honeyTripped, cfThreatScore, notes = "" }) => {
   return Math.min(score, 100);
 };
 
-export const onRequest = async ({ request }) => {
+export const onRequest = async (ctx) => {
+  const { request, env, waitUntil } = ctx;
   if (request.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed", allowed: ["POST"] }), {
       status: 405,
@@ -77,6 +78,73 @@ export const onRequest = async ({ request }) => {
   const score = calculateScore({ honeyTripped, cfThreatScore: cf.threatScore, notes: normalisedNotes });
   const classification = honeyTripped ? "honeypot" : score >= 60 ? "suspicious" : "observed";
 
+  // Persist to D1 if bound
+  if (env && env.DB && typeof env.DB.prepare === "function") {
+    try {
+      const stmt = env.DB.prepare(
+        `INSERT INTO events (ts, ip, country, colo, asn, path, form_id, honey, score, class, ua, cf_ray, fields_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      );
+      await stmt
+        .bind(
+          metadata.timestamp,
+          metadata.ip,
+          metadata.country,
+          metadata.colo,
+          metadata.asn ?? null,
+          metadata.path,
+          metadata.formId,
+          honeyTripped ? 1 : 0,
+          score,
+          classification,
+          metadata.userAgent,
+          metadata.cfRay,
+          JSON.stringify(fields)
+        )
+        .run();
+    } catch (e) {
+      console.error("inbound: d1 insert failed", e);
+    }
+  }
+
+  // Best-effort Slack alert for high-score events
+  const threshold = Number(env?.ALERT_THRESHOLD || 60);
+  const webhook = env?.SLACK_WEBHOOK_URL;
+  if (webhook && (classification === "honeypot" || score >= threshold)) {
+    const text = [
+      `Intake alert: ${classification.toUpperCase()} (score ${score})`,
+      `IP ${metadata.ip || "?"} • ${metadata.country || "??"} • ASN ${metadata.asn || "?"}`,
+      `Form ${metadata.formId || "?"} • Path ${metadata.path}`,
+      metadata.cfRay ? `Ray ${metadata.cfRay}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const payload = {
+      text,
+      blocks: [
+        {
+          type: "section",
+          text: { type: "mrkdwn", text },
+        },
+        {
+          type: "context",
+          elements: [
+            { type: "mrkdwn", text: `UA: ${(metadata.userAgent || "-").slice(0, 160)}` },
+          ],
+        },
+      ],
+    };
+
+    const send = fetch(webhook, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch((e) => console.error("inbound: slack send failed", e));
+
+    if (typeof waitUntil === "function") waitUntil(send);
+  }
+
   console.log(JSON.stringify({ ...metadata, score, classification }));
 
   return new Response(
@@ -84,4 +152,3 @@ export const onRequest = async ({ request }) => {
     { status: 202, headers: { "content-type": "application/json", "cache-control": "no-store" } }
   );
 };
-
