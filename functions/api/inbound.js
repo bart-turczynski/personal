@@ -201,15 +201,31 @@ export const onRequest = async (ctx) => {
     }
 
     if (allowSend) {
-      const subject = `[intake] ${classification.toUpperCase()} score ${score} — ${metadata.ip || "?"}`;
+      const previewField = (() => {
+        const keys = Object.keys(fields || {});
+        for (const k of ["summary", "notes", "message", "reason"]) {
+          if (fields[k]) return Array.isArray(fields[k]) ? String(fields[k][0]) : String(fields[k]);
+        }
+        if (keys.length) return String(fields[keys[0]]);
+        return "";
+      })();
+
+      const textPreview = (s = "", max = 160) => {
+        const clean = String(s || "").replace(/\s+/g, " ").trim();
+        return clean.length > max ? clean.slice(0, max) + "…" : clean;
+      };
+
+      const subject = `[intake-web] ${classification.toUpperCase()} score ${score} — ${metadata.ip || "?"} — ${textPreview(previewField, 80)}`;
       const lines = [
         `event=web-intake`,
         `ts=${metadata.timestamp}`,
-        `score=${score} class=${classification}`,
         `ip=${metadata.ip || "?"} country=${metadata.country || "??"} asn=${metadata.asn || "?"}`,
-        `path=${metadata.path} form=${metadata.formId || "?"}`,
+        `path=${metadata.path} form=${metadata.formId || "?"} honey=${honeyTripped ? 1 : 0}`,
+        `score=${score} class=${classification}`,
+        metadata.referer ? `referer=${metadata.referer}` : null,
         metadata.cfRay ? `ray=${metadata.cfRay}` : null,
-        `ua=${(metadata.userAgent || "-").slice(0, 300)}`,
+        `ua=${(metadata.userAgent || "-").slice(0, 220)}`,
+        previewField ? `preview=${textPreview(previewField, 200)}` : null,
       ].filter(Boolean);
       const text = lines.join("\n");
       const promise = sendEmail({ subject, text });
