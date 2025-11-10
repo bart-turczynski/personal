@@ -249,3 +249,10 @@ Notes
 - We store only metadata and a short preview; attachments are not persisted, only their names/types/sizes.
 - Alert subject includes score, remote IP, and subject preview to help triage quickly.
 - Optional shared secret: set `INBOUND_SECRET` (Secret) in Pages and append `?secret=<value>` to the SendGrid destination URL (or send it via `X-Inbound-Secret`). Requests without the secret return 401.
+
+### WAF / Rate limits
+- Cloudflare’s custom WAF and rate-limiting rules require a paid plan. On the current free tier, rely on:
+  - `INBOUND_SECRET` for webhook auth.
+  - Alert caps (`ALERT_HOURLY_CAP`, `ALERT_DEDUP_WINDOW_MIN`).
+  - Logs via Workers tail (`wrangler pages functions tail ...`).
+- If you upgrade later, add Log-mode WAF/rate limits for `/api/inbound` and `/api/sg-inbound` at that time.
