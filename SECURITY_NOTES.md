@@ -220,3 +220,31 @@ MailChannels DNS note:
   - URL: `/api/inbound/stats?hours=24&send=1`
   - Auth: header `X-Digest-Secret: <value>` or `?secret=<value>` (set `DIGEST_SECRET` in variables)
   - Sends a text digest to `ALERTS_TO` summarising totals, top IPs, and recent hits.
+
+---
+
+## Inbound Email via SendGrid (no VM)
+
+Goal: receive mail for `@email.turczynski.pl` and POST it to the site for parsing/telemetry.
+
+Steps
+- SendGrid Dashboard → Settings → Inbound Parse → Add Hostname
+  - Hostname: `email.turczynski.pl`
+  - Destination URL: `https://contact.turczynski.pl/api/sg-inbound`
+  - Spam check: enabled (optional)
+  - Send raw: disabled (optional; we only need fields)
+  - Require TLS: enabled (recommended)
+  - Save → follow DNS instructions below
+
+- Cloudflare DNS (DNS only / grey cloud)
+  - MX: Name `email`, Content `mx.sendgrid.net`, Priority `10`, TTL Auto
+  - Remove any Pages custom domain mapping on `email.turczynski.pl` to avoid CNAME/MX conflict
+
+Verification
+- `dig +short MX email.turczynski.pl` should return `mx.sendgrid.net.`
+- Send a test from another mailbox to `test@email.turczynski.pl`.
+- The function `functions/api/sg-inbound.js` stores a row in D1 and optionally emails an alert based on `ALERT_THRESHOLD`.
+
+Notes
+- We store only metadata and a short preview; attachments are not persisted, only their names/types/sizes.
+- Alert subject includes score, remote IP, and subject preview to help triage quickly.
