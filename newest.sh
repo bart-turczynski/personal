@@ -53,14 +53,22 @@ fi
 # Parse policy fields
 MODE=$(printf "%s" "$POLICY" | awk -F': *' 'tolower($1)=="mode"{print tolower($2)}' | tr -d '\r')
 MAX_AGE=$(printf "%s" "$POLICY" | awk -F': *' 'tolower($1)=="max_age"{print $2}' | tr -d '\r')
-readarray -t POLICY_MX < <(printf "%s" "$POLICY" | awk -F': *' 'tolower($1)=="mx"{print tolower($2)}' | tr -d '\r')
+
+POLICY_MX=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && POLICY_MX+=("$line")
+done < <(printf "%s" "$POLICY" | awk -F': *' 'tolower($1)=="mx"{print tolower($2)}' | tr -d '\r')
 
 if [[ -z "${MODE:-}" ]]; then bad "Policy missing mode:"; else ok "mode: $MODE"; fi
 if [[ -z "${MAX_AGE:-}" ]]; then warn "Policy missing max_age:"; else ok "max_age: $MAX_AGE"; fi
 if [[ ${#POLICY_MX[@]} -eq 0 ]]; then bad "Policy has no mx: lines"; else ok "Policy lists ${#POLICY_MX[@]} mx host(s)"; fi
 
 # 3) Compare DNS MX vs policy MX (allow wildcards in policy)
-readarray -t DNS_MX < <(dig MX "$DOMAIN" +short | awk '{print tolower($2)}' | sed 's/\.$//')
+DNS_MX=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && DNS_MX+=("$line")
+done < <(dig MX "$DOMAIN" +short | awk '{print tolower($2)}' | sed 's/\.$//')
+
 if [[ ${#DNS_MX[@]} -eq 0 ]]; then
   bad "No MX records found in DNS"
 else
