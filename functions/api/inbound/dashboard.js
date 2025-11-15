@@ -109,6 +109,9 @@ export const onRequest = async ({ request, env }) => {
     return respond(500, JSON.stringify({ error: "D1 binding missing" }), "application/json");
   }
 
+  const debugMode = url.searchParams.get("debug") === "1";
+
+  try {
   const hours = clampHours(url.searchParams.get("hours"));
   const threshold = Number(env?.ALERT_THRESHOLD || 60);
   const windowExpr = `-${hours} hours`;
@@ -281,4 +284,11 @@ export const onRequest = async ({ request, env }) => {
     </html>`;
 
   return respond(200, htmlBody);
+  } catch (error) {
+    console.error("dashboard error", error);
+    if (debugMode) {
+      return respond(500, JSON.stringify({ error: "dashboard-failed", details: String(error) }), "application/json");
+    }
+    return respond(500, JSON.stringify({ error: "Internal error" }), "application/json");
+  }
 };
