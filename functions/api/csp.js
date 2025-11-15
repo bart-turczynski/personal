@@ -23,17 +23,23 @@ const normaliseReport = (payload = {}) => {
   };
 };
 
-const methodNotAllowed = () =>
-  new Response("Not Found", {
-    status: 404,
-    headers: {
-      "content-type": "text/plain; charset=utf-8",
-      "cache-control": "no-store",
-    },
-  });
-
 export const onRequest = async ({ request, env }) => {
-  if (request.method !== "POST") return methodNotAllowed();
+  if (request.method !== "POST") {
+    const notFound = await fetch(new URL("/404.html", request.url), {
+      method: "GET",
+      headers: {
+        "x-robots-tag": "noindex, nofollow",
+        "cache-control": "no-store",
+      },
+    });
+    const headers = new Headers(notFound.headers);
+    headers.set("cache-control", "no-store");
+    headers.set("x-robots-tag", "noindex, nofollow");
+    return new Response(notFound.body, {
+      status: 404,
+      headers,
+    });
+  }
 
   const contentType = request.headers.get("content-type") || "";
   if (!contentType.toLowerCase().includes("application/json")) {
