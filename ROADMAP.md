@@ -25,12 +25,41 @@ This version reflects verified DNS, header, and caching configuration data from 
 
 | Area | Issue | Next Step |
 |------|--------|-----------|
-| **Legacy CAA issuers** | Comodo / SSL.com still listed. | Remove if not in use. Keep `digicert`, `letsencrypt`, `pki.goog`. |
-| **MTA-STS mode** | `testing` mode still active. | Switch to `enforce` and update `_mta-sts` TXT `id=` value. |
+| **Legacy CAA issuers** | Comodo / SSL.com still listed. | Cloudflare Universal SSL injects these automatically on Free plan; acceptable unless upgrading or self-managing edge certs. |
 | **Expect-CT header** | Deprecated. | Remove entirely. |
 | **X-XSS-Protection** | Legacy header. | Remove; CSP provides coverage. |
-| **Asset cache TTL** | 4h (`max-age=14400`). | Adjust to `31536000, immutable`. Likely Cloudflare override. |
-| **DNSSEC** | Disabled. | Expected; monitor AZ.pl for DNSSEC UI availability. |
+| **DNSSEC** | Disabled. | Cloudflare Registrar lacks `.pl` support; keep AZ.pl, point DNS to Cloudflare, then publish Cloudflare’s DS record at AZ. |
+
+---
+
+## 🛡️ DNSSEC Rollout (AZ.pl Registrar + Cloudflare DNS)
+
+**Reality check:** `.pl` domains are not supported by Cloudflare Registrar, so keep AZ.pl as registrar but move DNS hosting to Cloudflare and publish Cloudflare’s DS data manually at AZ.
+
+### Phase 0 – Prep (T-7 days)
+- Lower TTLs on all critical records (A/AAAA, MX, TXT incl. SPF/DMARC, `_mta-sts`, `_smtp._tls`, `CAA`) to 300 seconds for fast rollback.
+- Export the full zone file from AZ.pl and diff against Cloudflare’s DNS view to confirm parity.
+- Confirm with AZ.pl support/UI that DNSSEC DS entries are allowed for `.pl` domains (Panel → Domain → Advanced → DNSSEC).
+
+### Phase 1 – Stage Cloudflare DNS (T-3 days)
+- Add/import the zone into Cloudflare (if not already) and recreate every record, including SXG-supporting `CAA` entries.
+- Use `dig @<cloudflare-ns> turczynski.pl <type>` to verify Cloudflare responds identically to the current production zone.
+- Update AZ.pl nameservers to Cloudflare’s pair if that is not already the case, then wait for `dig ns turczynski.pl +trace` to show Cloudflare.
+
+### Phase 2 – Enable DNSSEC in Cloudflare (T-0)
+- Cloudflare Dashboard → DNS → **DNSSEC** → Enable. Copy the DS metadata values (Key Tag, Algorithm, Digest Type, Digest).
+- Enter the DS values inside AZ.pl’s DNSSEC form (Panel → Domains → turczynski.pl → DNSSEC). Save and confirm the registry update.
+- Keep telemetry and TLS-RPT monitors running during propagation (expect ~15 minutes because of the lowered TTLs).
+
+### Phase 3 – Validate + Harden (T+1 day)
+- Run:
+  ```bash
+  dig turczynski.pl DS +dnssec
+  dig turczynski.pl A +dnssec | grep flags
+  ```
+  Expect to see the DS record and an `ad` flag on lookups.
+- Revert TTLs to their normal values (e.g., 3600), relock the domain at AZ.pl, and document the enablement date in this repo.
+- Optional: if AZ.pl becomes a bottleneck, consider a registrar that supports `.pl` plus manual DS entries (OVH, Gandi) while still keeping Cloudflare as DNS host.
 
 ---
 

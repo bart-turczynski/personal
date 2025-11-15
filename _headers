@@ -31,3 +31,6 @@
 
 /*
   Cache-Control: public, max-age=0, must-revalidate
+  Cross-Origin-Embedder-Policy: require-corp
+  X-XSS-Protection:
+  Expect-CT:

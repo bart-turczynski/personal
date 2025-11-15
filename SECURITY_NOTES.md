@@ -65,12 +65,51 @@ report-to csp;
 | SPF | ✅ | `v=spf1 include:_spf.google.com -all` |
 | DKIM | ✅ | Selector: `google._domainkey` |
 | DMARC | ✅ | Strict alignment (`p=reject; sp=reject; aspf=s; adkim=s`) |
-| MTA-STS | ✅ | Mode: testing (enforce later) |
+| MTA-STS | ✅ | Mode: enforce (policy + `_mta-sts` TXT `id` rolled Nov 2025) |
 | TLS-RPT | ✅ | `rua=mailto:dmarc-reports@turczynski.pl` |
-| DNSSEC | ⏳ | Enable later via AZ.pl |
-| CAA | ✅ | Tight issuer control, SXG ready |
+| DNSSEC | ⏳ | Enable via Cloudflare DNS + DS entry at AZ.pl |
+| CAA | ✅ | Cloudflare Universal SSL injects Digicert/Let’s Encrypt/pki.goog + fallback issuers (Comodo/SSL.com) on Free plan; upgrade or custom certs required to prune. |
 
 ---
+
+## DNSSEC Playbook (AZ.pl Registrar + Cloudflare DNS)
+
+Cloudflare Registrar does **not** support `.pl`, but you can still host DNS at Cloudflare and push its DS record to AZ.pl.
+
+### 1. Pre-flight (T-7 to T-2 days)
+- **TTL tuning:** set A/AAAA, MX, `_mta-sts`, `_smtp._tls`, `_dmarc`, `_imap._tcp`, and `CAA` records to `300`.
+- **Inventory:** export the zone from AZ.pl (Panel → Domains → Zone Export) including honeypot entries; store alongside this repo.
+- **Nameserver readiness:** confirm AZ.pl already points to Cloudflare’s nameservers; if not, schedule that change first.
+- **DNSSEC capability check:** inside AZ.pl, ensure the DNSSEC view allows custom DS data for `.pl`. If not visible, request enablement via support.
+
+### 2. Stage/validate Cloudflare DNS (T-2 days)
+- Recreate/import every record from the exported zone and verify special records (CAA with `cansignhttpexchanges=yes`, `_mta-sts`, `_smtp._tls`) exist.
+- Use:
+  ```bash
+  dig @<cloudflare-ns> turczynski.pl TXT +noall +answer
+  dig @<cloudflare-ns> turczynski.pl caa
+  ```
+  to check Cloudflare’s view before switching anything else.
+
+### 3. Enable DNSSEC in Cloudflare (T-0)
+- Cloudflare Dashboard → DNS → **DNSSEC** → Enable. Copy Key Tag, Algorithm, Digest Type, and Digest (SHA-256).
+- In AZ.pl: Domain → DNSSEC → Add DS record → paste the four values → save. AZ.pl pushes the DS to the `.pl` registry.
+
+### 4. Validation (same day)
+- Run:
+  ```bash
+  dig turczynski.pl DS +dnssec
+  dig turczynski.pl A +dnssec | grep flags
+  whois turczynski.pl | grep -i dnssec
+  ```
+- Expect the DS record and `ad` flag on lookups. Monitor DMARC/TLS-RPT for any anomalies during the first 24h.
+
+### 5. Post-checks & rollback
+- Restore TTLs to normal (e.g., 3600), relock the domain at AZ.pl, and re-enable privacy.
+- If you must roll back, first **disable DNSSEC inside Cloudflare** (removes DS data it publishes), then delete the DS at AZ.pl before any nameserver or registrar changes.
+- Optionally evaluate alternative registrars that support `.pl` transfers plus DS management (OVH, Gandi, Porkbun) if AZ.pl tooling becomes limiting.
+
+> **CAA limitation:** With Universal SSL enabled on the Free plan, Cloudflare’s nameservers always publish the full list of issuers they may use (Let’s Encrypt, Digicert, Sectigo/Comodo, SSL.com, etc.). The custom CAA rows you add appear under DNS → Records, but the extra issuers persist until you either upgrade to Advanced Certificate Manager (and restrict the CA list there) or disable Universal SSL and supply your own edge certificates. Hence the roadmap item is “complete” once the UI list reflects only the desired issuers and you’ve documented this limitation.
 
 ## Security Headers (Planned Adjustments)
 
@@ -223,7 +262,26 @@ Ensure that DNS records and `.well-known/mta-sts.txt` respond correctly.
       }
     }
     ```
-  - Bind `PRUNE_SECRET` to that Worker so the fetch succeeds.
+- Bind `PRUNE_SECRET` to that Worker so the fetch succeeds.
+
+## DNS Hosting Migration & DNSSEC Plan
+
+- **Objective:** move authoritative DNS from AZ.pl to Cloudflare and enable DNSSEC using the registrar-provided AuthInfo snippet.
+- **Pre-migration checklist**
+  - Export current zone file (MX, TXT, CAA, _mta-sts, etc.).
+  - Copy AuthInfo code from AZ.pl (already stored securely) for the transfer.
+  - Validate Cloudflare has equivalent records staged (use “Add site” wizard in paused mode if necessary).
+- **Cut-over steps**
+  1. Initiate domain transfer to Cloudflare Registrar using the AuthInfo code.
+  2. Once Cloudflare becomes the registrar, verify Cloudflare DNS zone contains all records.
+  3. Switch nameservers to the ones provided during onboarding (Cloudflare automates this after transfer).
+- **Enable DNSSEC**
+  1. In Cloudflare DNS → DNSSEC → Enable.
+  2. Publish the DS record at the registrar (handled automatically once the transfer completes).
+  3. Verify with `dig +dnssec turczynski.pl`.
+- **Post-migration checks**
+  - Re-run the email/DNS health scripts.
+  - Update `ROADMAP.md` and these notes when DNSSEC shows as `✅`.
 
 ## Operator Dashboard
 
