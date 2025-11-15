@@ -27,6 +27,13 @@ const formatNumber = (value) => {
   return n.toLocaleString("en-US");
 };
 
+const runAll = async (statement, ...bindArgs) => {
+  const prepared = bindArgs.length ? statement.bind(...bindArgs) : statement;
+  const result = await prepared.all();
+  if (Array.isArray(result)) return result;
+  return Array.isArray(result?.results) ? result.results : [];
+};
+
 const tableSection = ({ title, headers = [], rows = [] }) => {
   if (!rows?.length) return "";
   const headerHtml = headers.map((h) => `<th>${escapeHtml(h)}</th>`).join("");
@@ -141,7 +148,7 @@ export const onRequest = async ({ request, env }) => {
       GROUP BY class
       ORDER BY count DESC`
   );
-  const classRows = await classStmt.bind(windowExpr).all();
+  const classRows = await runAll(classStmt, windowExpr);
 
   const formStmt = env.DB.prepare(
     `SELECT COALESCE(form_id, path, '(none)') AS label,
@@ -153,7 +160,7 @@ export const onRequest = async ({ request, env }) => {
       ORDER BY count DESC
       LIMIT 10`
   );
-  const topForms = await formStmt.bind(windowExpr).all();
+  const topForms = await runAll(formStmt, windowExpr);
 
   const ipStmt = env.DB.prepare(
     `SELECT ip, COUNT(*) AS count
@@ -163,7 +170,7 @@ export const onRequest = async ({ request, env }) => {
       ORDER BY count DESC
       LIMIT 10`
   );
-  const topIps = await ipStmt.bind(windowExpr).all();
+  const topIps = await runAll(ipStmt, windowExpr);
 
   const countryStmt = env.DB.prepare(
     `SELECT COALESCE(country,'??') AS country,
@@ -174,7 +181,7 @@ export const onRequest = async ({ request, env }) => {
       ORDER BY count DESC
       LIMIT 10`
   );
-  const topCountries = await countryStmt.bind(windowExpr).all();
+  const topCountries = await runAll(countryStmt, windowExpr);
 
   const recentStmt = env.DB.prepare(
     `SELECT ts, ip, country, form_id AS form, path, class, score, honey
@@ -183,7 +190,7 @@ export const onRequest = async ({ request, env }) => {
       ORDER BY ts DESC
       LIMIT 40`
   );
-  const recent = await recentStmt.bind(windowExpr).all();
+  const recent = await runAll(recentStmt, windowExpr);
 
   const classTable = tableSection({
     title: "Classification breakdown",
