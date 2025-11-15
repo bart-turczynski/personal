@@ -10,7 +10,7 @@
     "serve": "eleventy --serve",
     "start": "eleventy --serve",
     "debug": "DEBUG=Eleventy* eleventy",
-    "copy-static": "mkdir -p _site && [ -f src/robots.txt ] && cp src/robots.txt _site/ || true && [ -f src/ads.txt ] && cp src/ads.txt _site/ || true && [ -f src/humans.txt ] && cp src/humans.txt _site/ || true && [ -d src/.well-known ] && mkdir -p _site/.well-known && cp -R src/.well-known/. _site/.well-known/ || true",
+    "copy-static": "mkdir -p _site && [ -f src/robots.txt ] && cp src/robots.txt _site/ || true && [ -f src/ads.txt ] && cp src/ads.txt _site/ || true && [ -f src/humans.txt ] && cp src/humans.txt _site/ || true && [ -d src/.well-known ] && mkdir -p _site/.well-known && cp -R src/.well-known/. _site/.well-known/ || true && [ -f _headers ] && cp _headers _site/_headers || true",
     "postbuild": "npm run copy-static"
   },
   "engines": {
@@ -23,4 +23,3 @@
     "@11ty/eleventy": "^3.1.2"
   }
 }
-
