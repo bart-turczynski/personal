@@ -237,6 +237,7 @@ Ensure that DNS records and `.well-known/mta-sts.txt` respond correctly.
 - Recommended protection:
   - Place the route behind Cloudflare Access and inject the shared secret via a service token header.
   - For local checks, supply `?secret=` manually.
+- Note: the free Zero Trust tier does not expose header injection in the UI, so use a browser header extension (e.g., ModHeader) or include the header in CLI requests until upgraded.
 - Troubleshooting:
   - HTTP 401 → secret missing or mismatched.
   - HTTP 500 → ensure the Pages project has the D1 binding `DB`.

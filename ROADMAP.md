@@ -17,6 +17,7 @@ This version reflects verified DNS, header, and caching configuration data from 
 | **CORS configuration** | ✅ None exposed — correct. |
 | **HTML cache-control** | ✅ Using `public, max-age=0, must-revalidate`. |
 | **Favicons & manifest caching** | ✅ Long-term immutable caching configured. |
+| **Honeypot telemetry operations** | ✅ D1 retention endpoint + Access-protected dashboard live. |
 
 ---
 

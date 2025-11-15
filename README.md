@@ -23,6 +23,7 @@ Secrets and local Wrangler artefacts are excluded from the repository via `.giti
 - Visit `https://contact.turczynski.pl/api/inbound/dashboard?secret=<DIGEST_SECRET>&hours=24` to view live stats (protected by `DIGEST_SECRET`).
 - Data is queried directly from D1 (no caching) so it reflects the latest events, top IPs, and per-form activity.
 - Use Cloudflare Access to protect the route in production; the `secret` query param is primarily for CLI testing.
+- On the current Zero Trust free tier, Access cannot inject headers automatically, so add `X-Digest-Secret: <value>` via a browser extension (for interactive use) or via curl headers / Access service tokens for automation.
 
 ## Development
 
