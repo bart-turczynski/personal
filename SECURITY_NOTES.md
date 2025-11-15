@@ -36,8 +36,8 @@ upgrade-insecure-requests;
 
 ### 2. Improvements
 - Remove `'unsafe-inline'` by using **nonces** or **hashes** for inline CSS.
-- Introduce **`Content-Security-Policy-Report-Only`** for testing stricter policies safely.
-- Add **`Report-To`** endpoint to collect violation reports (via Cloudflare Worker or Pages Function).
+- ✅ **Report-Only telemetry live** — `_headers` now emits `Content-Security-Policy-Report-Only` with `report-to csp`, and `/api/csp` collects violations.
+- Add **`Report-To`** endpoint for additional signals (e.g., reuse endpoint for NEL once CSP data stabilises).
 - Optionally define per-section CSP (e.g., stricter `/admin/*` rules).
 
 ### 3. Future Policy Example
@@ -142,6 +142,25 @@ Cloudflare Registrar does **not** support `.pl`, but you can still host DNS at C
 ### B. Transform Rules Alternative
 - Add header: `Cross-Origin-Embedder-Policy = require-corp`
 - Remove: `X-XSS-Protection`, `Expect-CT`
+
+### C. CSP report collector (`/api/csp`)
+- Cloudflare Pages Function at `functions/api/csp.js` accepts JSON reports (Report-To + legacy `report-uri` formats) and logs metadata with `console.warn`.
+- Optional persistence: create a `csp_reports` table in D1:
+  ```sql
+  CREATE TABLE IF NOT EXISTS csp_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts TEXT NOT NULL,
+    ray_id TEXT,
+    colo TEXT,
+    ua TEXT,
+    document_uri TEXT,
+    blocked_uri TEXT,
+    violated_directive TEXT,
+    original_policy TEXT
+  );
+  ```
+  Bind the D1 database to `DB` in Cloudflare Pages → Functions so the collector stores rows automatically.
+- Headers: `_headers` adds both `Report-To` (group `csp`) and `Content-Security-Policy-Report-Only` referencing `/api/csp`, so browsers send data without enforcing the new policy yet.
 
 ---
 

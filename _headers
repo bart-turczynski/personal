@@ -34,3 +34,5 @@
   Cross-Origin-Embedder-Policy: require-corp
   X-XSS-Protection:
   Expect-CT:
+  Report-To: {"group":"csp","max_age":31536000,"endpoints":[{"url":"https://turczynski.pl/api/csp"}]}
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; report-to csp; report-uri /api/csp

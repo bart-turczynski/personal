@@ -18,6 +18,7 @@ This version reflects verified DNS, header, and caching configuration data from 
 | **HTML cache-control** | ✅ Using `public, max-age=0, must-revalidate`. |
 | **Favicons & manifest caching** | ✅ Long-term immutable caching configured. |
 | **Honeypot telemetry operations** | ✅ D1 retention endpoint + Access-protected dashboard live. |
+| **CSP reporting telemetry** | ✅ `/api/csp` collector + report-only header emits violations to Workers/D1. |
 
 ---
 
@@ -66,7 +67,7 @@ This version reflects verified DNS, header, and caching configuration data from 
 ## 💡 Future Ideas (Still Relevant)
 
 ### 🧩 Easy Additions
-- **CSP Reporting (Report-Only)** — implement `/csp` collector with `Report-To` endpoint.
+- **Promote CSP nonces** — replace `'unsafe-inline'` for styles/scripts so the enforced policy can tighten.
 - **Server-Timing breadcrumbs** — expose build ID + edge processing time.
 - **RUM beacon** — gather Core Web Vitals → visualize weekly trends.
 - **Image proxy route** (`/i/*`) — Cloudflare Image Resizing with auto format negotiation.
