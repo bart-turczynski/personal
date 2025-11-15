@@ -24,11 +24,10 @@ const normaliseReport = (payload = {}) => {
 };
 
 const methodNotAllowed = () =>
-  new Response(JSON.stringify({ error: "Method not allowed", allowed: ["POST"] }), {
-    status: 405,
+  new Response("Not Found", {
+    status: 404,
     headers: {
-      "content-type": "application/json",
-      Allow: "POST",
+      "content-type": "text/plain; charset=utf-8",
       "cache-control": "no-store",
     },
   });
