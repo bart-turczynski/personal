@@ -47,6 +47,7 @@ npm run build
    - **Build command**: `npm run build`
    - **Build output directory**: `_site`
    - **Node.js version**: 18 or later
+5. The build script automatically copies `_headers` (security headers) and `.well-known` assets into `_site`, so Cloudflare Pages will pick them up without extra configuration.
 
 ## Project Structure
 

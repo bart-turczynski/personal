@@ -26,8 +26,8 @@ This version reflects verified DNS, header, and caching configuration data from 
 | Area | Issue | Next Step |
 |------|--------|-----------|
 | **Legacy CAA issuers** | Comodo / SSL.com still listed. | Cloudflare Universal SSL injects these automatically on Free plan; acceptable unless upgrading or self-managing edge certs. |
-| **Expect-CT header** | Deprecated. | Remove entirely. |
-| **X-XSS-Protection** | Legacy header. | Remove; CSP provides coverage. |
+| **Expect-CT header** | Removed (Nov 2025). | `_headers` now blanks it so Cloudflare strips the legacy value. |
+| **X-XSS-Protection** | Removed (Nov 2025). | `_headers` blanks it, keeping CSP as the primary mitigation. |
 | **DNSSEC** | Disabled. | Cloudflare Registrar lacks `.pl` support; keep AZ.pl, point DNS to Cloudflare, then publish Cloudflare’s DS record at AZ. |
 
 ---

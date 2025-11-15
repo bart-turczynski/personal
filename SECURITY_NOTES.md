@@ -122,9 +122,9 @@ Cloudflare Registrar does **not** support `.pl`, but you can still host DNS at C
 | Permissions-Policy | strict (all APIs denied) | Keep |
 | Cross-Origin-Opener-Policy | same-origin | Keep |
 | Cross-Origin-Resource-Policy | same-origin | Keep |
-| Cross-Origin-Embedder-Policy | *missing* | Add: `require-corp` later |
-| X-XSS-Protection | present | Remove (deprecated) |
-| Expect-CT | present | Remove (deprecated) |
+| Cross-Origin-Embedder-Policy | require-corp | Added via `_headers` (Nov 2025) |
+| X-XSS-Protection | *removed* | `_headers` blank value strips it at Cloudflare edge |
+| Expect-CT | *removed* | `_headers` blank value strips it at Cloudflare edge |
 
 ---
 
