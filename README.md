@@ -8,6 +8,22 @@ The project ships with a `_headers` file that applies a strict set of HTTP secur
 
 Secrets and local Wrangler artefacts are excluded from the repository via `.gitignore` to prevent accidental leaks.
 
+### Telemetry retention
+
+- Honeypot telemetry is stored in Cloudflare D1 for 14 days by default.
+- Set the `PRUNE_SECRET` environment variable and (optionally) `RETENTION_DAYS`.
+- Invoke the retention endpoint manually or via a cron Worker:
+  ```bash
+  curl -X POST "https://contact.turczynski.pl/api/inbound/prune?secret=<PRUNE_SECRET>"
+  ```
+- Each run records its metadata in the `retention_log` table for auditing.
+
+### Operator dashboard
+
+- Visit `https://contact.turczynski.pl/api/inbound/dashboard?secret=<DIGEST_SECRET>&hours=24` to view live stats (protected by `DIGEST_SECRET`).
+- Data is queried directly from D1 (no caching) so it reflects the latest events, top IPs, and per-form activity.
+- Use Cloudflare Access to protect the route in production; the `secret` query param is primarily for CLI testing.
+
 ## Development
 
 ```bash

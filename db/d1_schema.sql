@@ -26,3 +26,11 @@ CREATE INDEX IF NOT EXISTS idx_events_ip ON events(ip);
 CREATE INDEX IF NOT EXISTS idx_events_score ON events(score);
 CREATE INDEX IF NOT EXISTS idx_events_honey ON events(honey);
 
+CREATE TABLE IF NOT EXISTS retention_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ran_at TEXT NOT NULL,
+  retention_days INTEGER NOT NULL,
+  deleted_rows INTEGER NOT NULL,
+  oldest_deleted_ts TEXT,
+  newest_deleted_ts TEXT
+);

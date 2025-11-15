@@ -113,9 +113,10 @@ export const onRequest = async (ctx) => {
   const alertsFrom = env?.ALERTS_FROM || alertsTo;
   const provider = (env?.MAIL_PROVIDER || "").toUpperCase(); // RESEND, SENDGRID, MAILCHANNELS
   const apiKey = env?.MAIL_API_KEY; // not required for MAILCHANNELS
+  const providerNeedsKey = provider && provider !== "MAILCHANNELS";
 
   const sendEmail = async ({ subject, text }) => {
-    if (!alertsTo || !alertsFrom || !provider || !apiKey) return;
+    if (!alertsTo || !alertsFrom || !provider || (providerNeedsKey && !apiKey)) return;
     try {
       if (provider === "RESEND") {
         const res = await fetch("https://api.resend.com/emails", {
@@ -238,8 +239,12 @@ export const onRequest = async (ctx) => {
   console.log(JSON.stringify({ ...metadata, score, classification }));
 
   // Minimal response: acknowledge only, no details
-  return new Response(JSON.stringify({ status: "received" }), {
-    status: 202,
-    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  const responseHeaders = { "content-type": "application/json", "cache-control": "no-store" };
+  const responseStatus = honeyTripped ? 403 : 202;
+  const responseBody = honeyTripped ? { status: "blocked" } : { status: "received" };
+
+  return new Response(JSON.stringify(responseBody), {
+    status: responseStatus,
+    headers: responseHeaders,
   });
 };

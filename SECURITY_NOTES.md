@@ -192,12 +192,54 @@ Ensure that DNS records and `.well-known/mta-sts.txt` respond correctly.
 
 ## Alerts Configuration (Email)
 
-- Pages Function `functions/api/inbound.js` can send email alerts for high‑score or honeypot events.
+- Pages Function `functions/api/inbound.js` can send email alerts for high-score or honeypot events.
 - Supported providers: `RESEND`, `SENDGRID`, or `MAILCHANNELS` (set via env).
 - Configure in Cloudflare Pages → Project → Settings → Variables & Secrets, then redeploy:
   - `MAIL_PROVIDER` = `RESEND` or `SENDGRID` or `MAILCHANNELS`
   - `MAIL_API_KEY` = provider API key (not required for `MAILCHANNELS`)
   - `ALERTS_TO` = `alerts@turczynski.pl`
+
+## Retention Automation
+
+- Raw telemetry older than **14 days** is purged via `functions/api/inbound/prune.js`.
+- Configure:
+  - `PRUNE_SECRET` (Secret): shared key required to invoke the endpoint.
+  - `RETENTION_DAYS` (Optional, default `14`): number of days to keep. Values are capped at 365.
+- Endpoint:
+  ```bash
+  curl -X POST "https://contact.turczynski.pl/api/inbound/prune?secret=<PRUNE_SECRET>"
+  ```
+  Response includes deleted row count, oldest/newest timestamps, and per-class breakdown. Results are also stored in the `retention_log` D1 table.
+- Automation:
+  - Create a Cloudflare Cron Trigger (Workers → Triggers → Add schedule).
+  - Worker snippet:
+    ```js
+    export default {
+      async scheduled(_event, env, ctx) {
+        ctx.waitUntil(fetch("https://contact.turczynski.pl/api/inbound/prune", {
+          method: "POST",
+          headers: { "x-prune-secret": env.PRUNE_SECRET }
+        }));
+      }
+    }
+    ```
+  - Bind `PRUNE_SECRET` to that Worker so the fetch succeeds.
+
+## Operator Dashboard
+
+- Endpoint: `functions/api/inbound/dashboard.js`
+  - GET `https://contact.turczynski.pl/api/inbound/dashboard?hours=24`
+  - Auth: header `X-Digest-Secret: <DIGEST_SECRET>` or `?secret=...`
+- Features:
+  - Summary counts (total, honey, score ≥ threshold)
+  - Top forms/paths, countries, source IPs
+  - Detailed table of the latest 40 events
+- Recommended protection:
+  - Place the route behind Cloudflare Access and inject the shared secret via a service token header.
+  - For local checks, supply `?secret=` manually.
+- Troubleshooting:
+  - HTTP 401 → secret missing or mismatched.
+  - HTTP 500 → ensure the Pages project has the D1 binding `DB`.
   - `ALERTS_FROM` = `alerts@turczynski.pl` (or another verified sender)
   - Optional: `ALERT_THRESHOLD` = `60`
 
