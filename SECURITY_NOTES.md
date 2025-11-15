@@ -69,6 +69,7 @@ report-to csp;
 | TLS-RPT | ✅ | `rua=mailto:dmarc-reports@turczynski.pl` |
 | DNSSEC | ⏳ | Enable via Cloudflare DNS + DS entry at AZ.pl |
 | CAA | ✅ | Cloudflare Universal SSL injects Digicert/Let’s Encrypt/pki.goog + fallback issuers (Comodo/SSL.com) on Free plan; upgrade or custom certs required to prune. |
+| security.txt / trust.json | ✅ | `.well-known/security.txt` refreshed + structured `.well-known/trust.json` for scanners. |
 
 ---
 
@@ -161,6 +162,11 @@ Cloudflare Registrar does **not** support `.pl`, but you can still host DNS at C
   ```
   Bind the D1 database to `DB` in Cloudflare Pages → Functions so the collector stores rows automatically.
 - Headers: `_headers` adds both `Report-To` (group `csp`) and `Content-Security-Policy-Report-Only` referencing `/api/csp`, so browsers send data without enforcing the new policy yet.
+
+### D. security.txt / trust.json
+- `src/.well-known/security.txt` advertises `security@turczynski.pl`, policy links, acknowledgements, and hiring info. No PGP key is listed because Gmail handles the domain mailboxes.
+- `src/.well-known/trust.json` mirrors the same contacts/coverage for automated scanners and provides disclosure expectations (response targets, wildcard coverage, exclusions).
+- Both files deploy automatically via the `copy-static` script, so `.well-known` stays in sync with repository changes.
 
 ---
 

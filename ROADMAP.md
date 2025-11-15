@@ -19,6 +19,7 @@ This version reflects verified DNS, header, and caching configuration data from 
 | **Favicons & manifest caching** | ✅ Long-term immutable caching configured. |
 | **Honeypot telemetry operations** | ✅ D1 retention endpoint + Access-protected dashboard live. |
 | **CSP reporting telemetry** | ✅ `/api/csp` collector + report-only header emits violations to Workers/D1. |
+| **security.txt / trust.json** | ✅ Refreshed contacts + `.well-known/trust.json` JSON metadata for scanners. |
 
 ---
 
